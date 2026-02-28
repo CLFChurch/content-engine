@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLF Content Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cream: #faf7f2;
+            --rust: #cc6b47;
+            --rust-light: #e8997a;
+            --rust-dark: #a85639;
+            --charcoal: #2c2c2c;
+            --charcoal-light: #4a4a4a;
+            --warm-white: #ffffff;
+            --sage: #7d8471;
+            --shadow: rgba(44, 44, 44, 0.1);
+            --shadow-strong: rgba(44, 44, 44, 0.2);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #f5f1ea 100%);
+            color: var(--charcoal);
+            min-height: 100vh;
+            display: flex;
+            line-height: 1.6;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: var(--warm-white);
+            border-right: 1px solid #e8e5df;
+            box-shadow: 2px 0 20px var(--shadow);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--rust) 0%, var(--rust-light) 100%);
+        }
+
+        .header {
+            padding: 32px 24px 24px;
+            border-bottom: 1px solid #f0ede6;
+        }
+
+        .logo {
+            font-family: 'Crimson Text', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            font-size: 14px;
+            color: var(--charcoal-light);
+            font-weight: 400;
+        }
+
+        .admin-toggle {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0ede6;
+        }
+
+        .admin-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--charcoal-light);
+        }
+
+        .admin-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--rust);
+        }
+
+        .admin-text {
+            font-weight: 500;
+        }
+
+        .employee-selector {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f0ede6;
+        }
+
+        .employee-label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--charcoal-light);
+        }
+
+        .employee-text {
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .employee-label select {
+            padding: 8px 12px;
+            border: 1px solid #e8e5df;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--charcoal);
+            cursor: pointer;
+        }
+
+        .employee-label select:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .week-selector {
+            padding: 24px;
+            border-bottom: 1px solid #f0ede6;
+        }
+
+        .week-selector.hidden {
+            display: none;
+        }
+
+        .week-toggle {
+            display: flex;
+            background: #f8f6f1;
+            border-radius: 12px;
+            padding: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .week-option {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .week-option.active {
+            background: var(--rust);
+            color: white;
+            box-shadow: 0 2px 8px rgba(204, 107, 71, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .week-option:not(.active) {
+            color: var(--charcoal-light);
+        }
+
+        .week-option:not(.active):hover {
+            color: var(--charcoal);
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .steps-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 0;
+        }
+
+        .step {
+            padding: 16px 24px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .step:hover {
+            background: #faf8f5;
+            border-left-color: var(--rust-light);
+        }
+
+        .step.active {
+            background: linear-gradient(135deg, #fff5f2 0%, #fef9f7 100%);
+            border-left-color: var(--rust);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f0ede6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--charcoal-light);
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .step.active .step-number {
+            background: var(--rust);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step.completed .step-number {
+            background: var(--sage);
+            color: white;
+        }
+
+        .step-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--charcoal);
+            flex: 1;
+        }
+
+        .step.active .step-title {
+            color: var(--rust-dark);
+            font-weight: 600;
+        }
+
+        .step-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--rust);
+            cursor: pointer;
+        }
+
+        .step-checkbox:checked {
+            accent-color: var(--sage);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px 48px;
+            overflow-y: auto;
+            max-width: 800px;
+        }
+
+        .content-header {
+            margin-bottom: 32px;
+        }
+
+        .content-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .content-subtitle {
+            font-size: 16px;
+            color: var(--charcoal-light);
+            font-weight: 400;
+        }
+
+        .instruction-card {
+            background: var(--warm-white);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid #f0ede6;
+        }
+
+        .instruction-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instruction-text {
+            color: var(--charcoal-light);
+            margin-bottom: 16px;
+            line-height: 1.7;
+        }
+
+        .prompt-card {
+            background: linear-gradient(135deg, #f8f6f1 0%, #f3f0e8 100%);
+            border: 1px solid #e8e5df;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .prompt-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--rust-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .copy-btn {
+            background: var(--rust);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .copy-btn:hover {
+            background: var(--rust-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(204, 107, 71, 0.3);
+        }
+
+        .prompt-text {
+            background: var(--warm-white);
+            border: 1px solid #e0ddd5;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--charcoal);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .canva-link-container {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f8f6f1;
+            border-radius: 8px;
+            border: 1px solid #e8e5df;
+        }
+
+        .canva-link-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--charcoal-light);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .canva-link-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d0cdc7;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .canva-link-input:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .week-info {
+            background: linear-gradient(135deg, var(--rust) 0%, var(--rust-light) 100%);
+            color: white;
+            padding: 20px 24px;
+            margin: 0 -24px 16px -24px;
+            text-align: center;
+        }
+
+        .week-info h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .week-info p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .admin-mode .editable {
+            position: relative;
+            cursor: pointer;
+            border: 2px dashed transparent;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .admin-mode .editable:hover {
+            border-color: var(--rust-light);
+            background: rgba(204, 107, 71, 0.05);
+        }
+
+        .admin-mode .editable::after {
+            content: '✏️';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--rust);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .admin-mode .editable:hover::after {
+            opacity: 1;
+        }
+
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-modal.active {
+            display: flex;
+        }
+
+        .edit-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .edit-modal h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--charcoal);
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 2px solid #e8e5df;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .edit-textarea:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .edit-modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .edit-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn.save {
+            background: var(--rust);
+            color: white;
+        }
+
+        .edit-btn.save:hover {
+            background: var(--rust-dark);
+        }
+
+        .edit-btn.cancel {
+            background: #f5f5f5;
+            color: var(--charcoal);
+        }
+
+        .edit-btn.cancel:hover {
+            background: #e8e8e8;
+        }
+
+        .admin-controls {
+            display: none;
+            padding: 16px;
+            border-top: 1px solid #f0ede6;
+            background: #faf8f5;
+        }
+
+        .admin-mode .admin-controls {
+            display: block;
+        }
+
+        .admin-btn {
+            background: var(--sage);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .admin-btn:hover {
+            background: #6b7861;
+        }
+
+        .admin-mode .editable {
+            position: relative;
+            cursor: pointer;
+            border: 2px dashed transparent;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .admin-mode .editable:hover {
+            border-color: var(--rust-light);
+            background: rgba(204, 107, 71, 0.05);
+        }
+
+        .admin-mode .editable::after {
+            content: '✏️';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--rust);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .admin-mode .editable:hover::after {
+            opacity: 1;
+        }
+
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-modal.active {
+            display: flex;
+        }
+
+        .edit-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .edit-modal h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--charcoal);
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 2px solid #e8e5df;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .edit-textarea:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .edit-modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .edit-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn.save {
+            background: var(--rust);
+            color: white;
+        }
+
+        .edit-btn.save:hover {
+            background: var(--rust-dark);
+        }
+
+        .edit-btn.cancel {
+            background: #f5f5f5;
+            color: var(--charcoal);
+        }
+
+        .edit-btn.cancel:hover {
+            background: #e8e8e8;
+        }
+
+        .admin-controls {
+            display: none;
+            padding: 16px;
+            border-top: 1px solid #f0ede6;
+            background: #faf8f5;
+        }
+
+        .admin-mode .admin-controls {
+            display: block;
+        }
+
+        .admin-btn {
+            background: var(--sage);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .admin-btn:hover {
+            background: #6b7861;
+        }
+
+        .admin-mode .editable {
+            position: relative;
+            cursor: pointer;
+            border: 2px dashed transparent;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .admin-mode .editable:hover {
+            border-color: var(--rust-light);
+            background: rgba(204, 107, 71, 0.05);
+        }
+
+        .admin-mode .editable::after {
+            content: '✏️';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--rust);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .admin-mode .editable:hover::after {
+            opacity: 1;
+        }
+
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-modal.active {
+            display: flex;
+        }
+
+        .edit-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .edit-modal h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--charcoal);
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 2px solid #e8e5df;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .edit-textarea:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .edit-modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .edit-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn.save {
+            background: var(--rust);
+            color: white;
+        }
+
+        .edit-btn.save:hover {
+            background: var(--rust-dark);
+        }
+
+        .edit-btn.cancel {
+            background: #f5f5f5;
+            color: var(--charcoal);
+        }
+
+        .edit-btn.cancel:hover {
+            background: #e8e8e8;
+        }
+
+        .admin-controls {
+            display: none;
+            padding: 16px;
+            border-top: 1px solid #f0ede6;
+            background: #faf8f5;
+        }
+
+        .admin-mode .admin-controls {
+            display: block;
+        }
+
+        .admin-btn {
+            background: var(--sage);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .admin-btn:hover {
+            background: #6b7861;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <div class="logo">CLF Content Engine</div>
+            <div class="tagline">Streamlined content workflow</div>
+            <div class="admin-toggle">
+                <label class="admin-label">
+                    <input type="checkbox" id="admin-mode" onchange="toggleAdminMode()">
+                    <span class="admin-text">Edit Mode</span>
+                </label>
+            </div>
+            <div class="employee-selector">
+                <label class="employee-label">
+                    <span class="employee-text">Team Member:</span>
+                    <select id="employee-select" onchange="switchEmployee()">
+                        <option value="andrian">Andrian</option>
+                        <option value="edgar">Edgar</option>
+                        <option value="chichi">Chichi</option>
+                        <option value="titus">Titus</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+        
+        <div class="week-selector" id="week-selector">
+            <div class="week-toggle">
+                <div class="week-option active" data-week="sermon">Sermon Week</div>
+                <div class="week-option" data-week="podcast">Podcast Week</div>
+            </div>
+        </div>
+
+        <div id="week-info" class="week-info">
+            <h3>Sermon Focus + Podcast Recording</h3>
+            <p>Process sermon content, record new podcast</p>
+        </div>
+        
+        <div class="steps-container" id="steps-container">
+            <!-- Steps will be populated by JavaScript -->
+        </div>
+
+        <div class="admin-controls">
+            <button class="admin-btn" onclick="exportWorkflow()">Export Workflow</button>
+            <button class="admin-btn" onclick="importWorkflow()">Import Workflow</button>
+            <button class="admin-btn" onclick="resetWorkflow()">Reset to Default</button>
+        </div>
+
+        <div class="admin-controls">
+            <button class="admin-btn" onclick="exportWorkflow()">Export Workflow</button>
+            <button class="admin-btn" onclick="importWorkflow()">Import Workflow</button>
+            <button class="admin-btn" onclick="resetWorkflow()">Reset to Default</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <h1 class="content-title" id="step-title">Select a step to begin</h1>
+            <p class="content-subtitle" id="step-subtitle">Choose from the workflow steps on the left</p>
+        </div>
+        
+        <div id="step-content">
+            <!-- Step content will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="edit-modal" id="edit-modal">
+        <div class="edit-modal-content">
+            <h3 id="edit-modal-title">Edit Content</h3>
+            <textarea class="edit-textarea" id="edit-textarea" placeholder="Edit content here..."></textarea>
+            <div class="edit-modal-actions">
+                <button class="edit-btn cancel" onclick="cancelEdit()">Cancel</button>
+                <button class="edit-btn save" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="edit-modal" id="edit-modal">
+        <div class="edit-modal-content">
+            <h3 id="edit-modal-title">Edit Content</h3>
+            <textarea class="edit-textarea" id="edit-textarea" placeholder="Edit content here..."></textarea>
+            <div class="edit-modal-actions">
+                <button class="edit-btn cancel" onclick="cancelEdit()">Cancel</button>
+                <button class="edit-btn save" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleImport(event)">
+
+    <script>
+        // Workflow data with EXACTLY 7 steps for both sermon and podcast weeks
+        const workflows = {
+            andrian: {
+                sermon: {
+                    title: "Sermon Focus + Podcast Recording",
+                    description: "Process sermon content, record new podcast",
+                    steps: [
+                        {
+                            id: "process-sermon",
+                            title: "Process Sunday Sermon",
+                            content: {
+                                title: "Download & Process Sermon",
+                                subtitle: "Get the sermon ready for clip extraction",
+                                instructions: [
+                                    {
+                                        title: "📥 Download Sermon Video",
+                                        text: "Download the video from YouTube Studio"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "create-youtube-content",
+                            title: "Create YouTube Content",
+                            content: {
+                                title: "Generate YouTube Titles & Descriptions",
+                                subtitle: "Transform sermon clips into YouTube-ready content",
+                                instructions: [
+                                    {
+                                        title: "🤖 Generate YouTube Copy",
+                                        text: "Use this prompt template for each clip",
+                                        prompt: {
+                                            label: "YouTube Content Generation Prompt",
+                                            text: `You are a YouTube content strategist for a church channel.
+Using the transcript below, generate:
+1) A YouTube Title (MAX 60 characters, compelling, clear, no fluff, no clickbait)
+2) A 2–3 sentence description that explains the core teaching and why it matters
+3) 5–7 relevant hashtags (no generic spam tags)
+Guidelines:
+- Prioritize clarity over hype
+- No church clichés unless clearly stated in transcript
+- Make the tension clear
+- Focus on one main idea, not multiple
+- Title should spark curiosity but stay honest
+- Do NOT generate thumbnail overlay text
+Transcript:
+[PASTE TRANSCRIPT HERE]`
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "schedule-youtube",
+                            title: "Schedule YouTube Posts",
+                            content: {
+                                title: "Schedule YouTube Shorts",
+                                subtitle: "Upload and schedule your 4 sermon clips",
+                                instructions: [
+                                    {
+                                        title: "📅 Upload & Schedule",
+                                        text: "Upload your 4 sermon clips to YouTube with schedule: Tuesday, Wednesday, Thursday, Friday"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "instagram-podcast",
+                            title: "Instagram Podcast Reel",
+                            content: {
+                                title: "Post Podcast Reel on Instagram",
+                                subtitle: "Use the best podcast clip from 2 weeks ago",
+                                instructions: [
+                                    {
+                                        title: "📱 Tuesday Instagram Post",
+                                        text: "Post the best performing podcast reel from 2 weeks ago"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "sermon-carousel",
+                            title: "Create Sermon Carousel",
+                            content: {
+                                title: "Thursday Sermon Carousel",
+                                subtitle: "Transform sermon into Instagram carousel",
+                                instructions: [
+                                    {
+                                        title: "🎨 Generate Carousel Content",
+                                        text: "Create a teaching carousel from this Sunday's sermon"
+                                    },
+                                    {
+                                        title: "🖼️ Design in Canva",
+                                        text: "Use the generated content to create your carousel in Canva",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "post-carousel-instagram",
+                            title: "Post Carousel to Instagram",
+                            content: {
+                                title: "Publish Sermon Carousel",
+                                subtitle: "Post the carousel to Instagram with music for discovery",
+                                instructions: [
+                                    {
+                                        title: "📱 Post to Instagram",
+                                        text: "Upload the sermon carousel to Instagram (not Facebook Meta) and add background music for discovery algorithm boost"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "create-instagram-thumbnail",
+                            title: "Create Instagram Thumbnail",
+                            content: {
+                                title: "Design Instagram Cover Thumbnail",
+                                subtitle: "Create the cover thumbnail for the Instagram carousel post",
+                                instructions: [
+                                    {
+                                        title: "🖼️ Design Instagram Thumbnail",
+                                        text: "Create the cover thumbnail for the Instagram carousel post in Canva",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                podcast: {
+                    title: "Podcast Focus + No Recording",
+                    description: "Process podcast content, no new recording",
+                    steps: [
+                        {
+                            id: "process-podcast",
+                            title: "Process Wednesday Podcast",
+                            content: {
+                                title: "Download & Process Podcast",
+                                subtitle: "Get last week's podcast ready for clips",
+                                instructions: [
+                                    {
+                                        title: "📥 Download Podcast Video",
+                                        text: "Download the video file from last Wednesday's podcast recording"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "create-youtube-content-podcast",
+                            title: "Create YouTube Content",
+                            content: {
+                                title: "Generate YouTube Titles & Descriptions",
+                                subtitle: "Transform podcast clips into YouTube-ready content",
+                                instructions: [
+                                    {
+                                        title: "🤖 Generate YouTube Copy",
+                                        text: "Use this prompt template for each clip",
+                                        prompt: {
+                                            label: "YouTube Content Generation Prompt",
+                                            text: `You are a YouTube strategist creating content for a church podcast clip.
+Using the transcript below, generate:
+1) A YouTube Title (MAX 60 characters, compelling but clear)
+2) A 2–3 sentence description explaining the conversation and why it matters
+3) 5–7 relevant hashtags
+4) Thumbnail overlay text (3–6 bold words)
+Guidelines:
+- Podcast tone should feel conversational, not preachy
+- Highlight tension, question, or insight
+- Avoid vague titles like "Powerful Word" or "Must Watch"
+- Make it searchable and specific
+- Thumbnail text should trigger curiosity or emotion
+Transcript:
+[PASTE TRANSCRIPT HERE]`
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "schedule-youtube-podcast",
+                            title: "Schedule YouTube Posts",
+                            content: {
+                                title: "Schedule YouTube Shorts",
+                                subtitle: "Upload and schedule your 4 podcast clips",
+                                instructions: [
+                                    {
+                                        title: "📅 Upload & Schedule",
+                                        text: "Upload your 4 podcast clips to YouTube with schedule: Tuesday, Wednesday, Thursday, Friday"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "instagram-sermon",
+                            title: "Instagram Sermon Reel",
+                            content: {
+                                title: "Post Sermon Reel on Instagram",
+                                subtitle: "Use the best sermon clip from last week",
+                                instructions: [
+                                    {
+                                        title: "📱 Tuesday Instagram Post",
+                                        text: "Post the best performing sermon reel from last week's YouTube uploads"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "podcast-carousel",
+                            title: "Create Podcast Carousel",
+                            content: {
+                                title: "Thursday Podcast Carousel",
+                                subtitle: "Transform podcast into Instagram carousel",
+                                instructions: [
+                                    {
+                                        title: "🎨 Generate Carousel Content",
+                                        text: "Create a teaching carousel from last week's podcast"
+                                    },
+                                    {
+                                        title: "🖼️ Design in Canva",
+                                        text: "Use the generated content to create your carousel in Canva",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "post-carousel-instagram-podcast",
+                            title: "Post Carousel to Instagram",
+                            content: {
+                                title: "Publish Podcast Carousel",
+                                subtitle: "Post the carousel to Instagram with music for discovery",
+                                instructions: [
+                                    {
+                                        title: "📱 Post to Instagram",
+                                        text: "Upload the podcast carousel to Instagram (not Facebook Meta) and add background music for discovery algorithm boost"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "create-instagram-thumbnail-podcast",
+                            title: "Create Instagram Thumbnail",
+                            content: {
+                                title: "Design Instagram Cover Thumbnail",
+                                subtitle: "Create the cover thumbnail for the Instagram carousel post",
+                                instructions: [
+                                    {
+                                        title: "🖼️ Design Instagram Thumbnail",
+                                        text: "Create the cover thumbnail for the Instagram carousel post in Canva",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            edgar: {
+                weekly: {
+                    title: "Edgar's Weekly Responsibilities - Visual & Photo Lead",
+                    description: "Photo editing, thumbnails, and visual content creation every Sunday",
+                    steps: [
+                        {
+                            id: "aftershoot-processing",
+                            title: "Process Photos in Aftershoot",
+                            content: {
+                                title: "Process Sunday Service Photos",
+                                subtitle: "Cull and edit all photos from today's service",
+                                instructions: [
+                                    {
+                                        title: "📸 Import Sunday Photos",
+                                        text: "Import all photos from Sunday's service into Aftershoot"
+                                    },
+                                    {
+                                        title: "✂️ Cull and Select",
+                                        text: "Cull and select the best images from the service"
+                                    },
+                                    {
+                                        title: "🎨 Batch Edit",
+                                        text: "Batch edit selected photos for consistency and quality"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "upload-google-photos",
+                            title: "Upload to Google Photos",
+                            content: {
+                                title: "Upload Edited Photos",
+                                subtitle: "Upload all edited photos to the shared Google Photos album",
+                                instructions: [
+                                    {
+                                        title: "☁️ Upload to Google Photos",
+                                        text: "Upload all edited photos to the designated Google Photos album for CLF"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "sunday-recap-post",
+                            title: "Post Sunday Recap",
+                            content: {
+                                title: "Create Sunday Recap Post",
+                                subtitle: "Post the Sunday service recap on Instagram and Facebook",
+                                instructions: [
+                                    {
+                                        title: "📱 Select Best Photos",
+                                        text: "Choose the best edited photos from today's service for the recap post"
+                                    },
+                                    {
+                                        title: "✍️ Create Recap Post",
+                                        text: "Post Sunday recap on Instagram and Facebook using the selected photos"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "youtube-sermon-thumbnail",
+                            title: "Create YouTube Sermon Thumbnail",
+                            content: {
+                                title: "Design YouTube Sermon Thumbnail",
+                                subtitle: "Create the main thumbnail for the full sermon video",
+                                instructions: [
+                                    {
+                                        title: "🖼️ Design YouTube Thumbnail",
+                                        text: "Create the main thumbnail for this week's full sermon video",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "instagram-thumbnails",
+                            title: "Create Instagram Thumbnails",
+                            content: {
+                                title: "Design Instagram Covers",
+                                subtitle: "Create covers for reels and carousels",
+                                instructions: [
+                                    {
+                                        title: "🎬 Create Reel Covers",
+                                        text: "Design thumbnail covers for Instagram reels",
+                                        canvaLink: ""
+                                    },
+                                    {
+                                        title: "📊 Create Carousel Covers",
+                                        text: "Design thumbnail covers for Instagram carousels",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "testimony-thumbnails",
+                            title: "Create Testimony Thumbnails",
+                            content: {
+                                title: "Design Testimony Covers",
+                                subtitle: "Create thumbnails for testimony content",
+                                instructions: [
+                                    {
+                                        title: "💭 Design Testimony Thumbnails",
+                                        text: "Design thumbnail covers for Instagram testimony content",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "youtube-hook-thumbnails",
+                            title: "Design YouTube Hook Thumbnails",
+                            content: {
+                                title: "Create YouTube Thumbnails with Hook Text",
+                                subtitle: "Design YouTube thumbnails using provided hook text from Andrian",
+                                instructions: [
+                                    {
+                                        title: "📝 Design with Hook Text",
+                                        text: "Create YouTube thumbnails using the hook text provided by Andrian for various content",
+                                        canvaLink: ""
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            chichi: {
+                weekly: {
+                    title: "Chichi's Weekly Responsibilities - Sermon Editor",
+                    description: "Edit and publish the full Sunday sermon",
+                    steps: [
+                        {
+                            id: "edit-full-service",
+                            title: "Edit Full Service to Sermon",
+                            content: {
+                                title: "Edit Sunday Service Down to Sermon",
+                                subtitle: "Cut the full service recording to create a clean 40-minute sermon",
+                                instructions: [
+                                    {
+                                        title: "✂️ Edit Service Recording",
+                                        text: "Edit the full Sunday service recording down to the 40-minute sermon portion, removing announcements, worship, and other non-sermon content"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "export-sermon-video",
+                            title: "Export Final Sermon Video",
+                            content: {
+                                title: "Prepare Final Export",
+                                subtitle: "Export the edited sermon in proper format for YouTube upload",
+                                instructions: [
+                                    {
+                                        title: "📤 Export Final Video",
+                                        text: "Export the edited 40-minute sermon video in high quality format suitable for YouTube upload"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "upload-youtube-sermon",
+                            title: "Upload Sermon to YouTube",
+                            content: {
+                                title: "Publish Full Sermon Video",
+                                subtitle: "Upload the final sermon video to YouTube with proper metadata",
+                                instructions: [
+                                    {
+                                        title: "🎥 Upload to YouTube",
+                                        text: "Upload the final sermon video to YouTube, ensuring it's properly published and ready for distribution"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "verify-distribution",
+                            title: "Verify Distribution Ready",
+                            content: {
+                                title: "Confirm Publication Status",
+                                subtitle: "Ensure the sermon is properly published and accessible",
+                                instructions: [
+                                    {
+                                        title: "✅ Final Check",
+                                        text: "Verify that the full sermon message is properly published, accessible, and ready for distribution across all channels"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            titus: {
+                monthly: {
+                    title: "Titus's Monthly Responsibilities - Testimony Video Lead",
+                    description: "Edit and distribute testimony content monthly",
+                    steps: [
+                        {
+                            id: "setup-premiere-project",
+                            title: "Setup Premiere Pro Project",
+                            content: {
+                                title: "Open Template and Import Footage",
+                                subtitle: "Set up the testimony project in Premiere Pro",
+                                instructions: [
+                                    {
+                                        title: "📁 Open Premiere Template",
+                                        text: "Open the testimony template in Premiere Pro that's saved on the SD drive"
+                                    },
+                                    {
+                                        title: "📥 Import Testimony Video",
+                                        text: "Import the raw testimony video footage into the project"
+                                    },
+                                    {
+                                        title: "🎬 Drag to Timeline",
+                                        text: "Drag the testimony video onto a new clip in the timeline"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "process-audio-adobe-podcast",
+                            title: "Process Audio Through Adobe Podcast",
+                            content: {
+                                title: "Enhance Audio Quality",
+                                subtitle: "Use Adobe Podcast to improve audio clarity",
+                                instructions: [
+                                    {
+                                        title: "🔊 Export Audio Only",
+                                        text: "Export just the audio track from the testimony video"
+                                    },
+                                    {
+                                        title: "🎙️ Upload to Adobe Podcast",
+                                        text: "Upload the audio to Adobe Podcast and adjust the dials so they read 80% speech and 10% background"
+                                    },
+                                    {
+                                        title: "⬇️ Download Enhanced Audio",
+                                        text: "Download the processed audio and reimport it back into Premiere Pro"
+                                    },
+                                    {
+                                        title: "🔗 Replace Audio Track",
+                                        text: "Line up the new enhanced audio clip with the video, then delete the old audio track"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "apply-color-preset",
+                            title: "Apply Visual Effects",
+                            content: {
+                                title: "Color Grade the Testimony",
+                                subtitle: "Apply the testimony color preset for consistent visual style",
+                                instructions: [
+                                    {
+                                        title: "🎨 Apply Color Preset",
+                                        text: "Go into Effects panel, select Presets → Podcast, and drag the 'Testimony' preset onto the video clip to color grade the image"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "edit-testimony-story",
+                            title: "Edit the Testimony Story",
+                            content: {
+                                title: "Create the Complete Testimony Experience",
+                                subtitle: "Edit for maximum impact and engagement",
+                                instructions: [
+                                    {
+                                        title: "✂️ Find Best Opening",
+                                        text: "Skim through the footage and find the best opening that gives viewers a preview of what they're about to see"
+                                    },
+                                    {
+                                        title: "🎵 Add Background Music",
+                                        text: "Go to Pixabay and find mellow, serious, worship-style background music. Use the same track for both the beginning and ending of the video"
+                                    },
+                                    {
+                                        title: "🎬 Complete the Edit",
+                                        text: "Finish editing the testimony for maximum emotional impact and storytelling flow"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "export-and-upload",
+                            title: "Export and Upload to YouTube",
+                            content: {
+                                title: "Prepare Final Export",
+                                subtitle: "Export the finished testimony and upload to YouTube",
+                                instructions: [
+                                    {
+                                        title: "📤 Export Final Video",
+                                        text: "Export the completed testimony video in high quality"
+                                    },
+                                    {
+                                        title: "🎥 Upload to YouTube",
+                                        text: "Upload the testimony video to YouTube (initially without final metadata)"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "generate-youtube-metadata",
+                            title: "Generate YouTube Metadata",
+                            content: {
+                                title: "Create Title, Description, and Chapters",
+                                subtitle: "Use GPT to generate comprehensive YouTube content",
+                                instructions: [
+                                    {
+                                        title: "📝 Get Transcript",
+                                        text: "Get the video transcript either by waiting for YouTube to auto-generate it (takes a few hours) or export it directly from Premiere Pro"
+                                    },
+                                    {
+                                        title: "🤖 Generate YouTube Content",
+                                        text: "Use this GPT prompt to create comprehensive metadata for the testimony",
+                                        prompt: {
+                                            label: "Testimony YouTube Metadata Generator",
+                                            text: `Create comprehensive YouTube content for this testimony video:
+
+[PASTE TESTIMONY TRANSCRIPT HERE]
+
+Generate:
+1. YOUTUBE TITLE (compelling, clear, focuses on the transformation story)
+2. DETAILED DESCRIPTION (3-4 paragraphs):
+   - Hook paragraph summarizing the transformation
+   - Background context and struggle
+   - The breakthrough moment
+   - Current impact and encouragement for viewers
+3. VIDEO CHAPTERS (6-10 chapters with descriptive titles):
+   - Format: "0:00 Introduction"
+   - Include key story beats and turning points
+4. THUMBNAIL HOOK TEXT (3-5 words, emotionally compelling for Edgar to use)
+
+Guidelines:
+- Focus on the transformation journey
+- Make it relatable and hopeful
+- Use authentic, not overly religious language
+- Emphasize the human story over church promotion`
+                                        }
+                                    },
+                                    {
+                                        title: "📊 Update YouTube Video",
+                                        text: "Update the YouTube video with the generated title, description, and chapters"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "schedule-youtube-release",
+                            title: "Schedule YouTube Release",
+                            content: {
+                                title: "Set Release Schedule",
+                                subtitle: "Schedule for first Monday of next month",
+                                instructions: [
+                                    {
+                                        title: "📅 Schedule Release",
+                                        text: "Set the testimony video to schedule for release on the first Monday of the next month at 7 AM"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "process-opus-clips",
+                            title: "Process Through Opus",
+                            content: {
+                                title: "Extract Short Clips",
+                                subtitle: "Create short-form content from the testimony",
+                                instructions: [
+                                    {
+                                        title: "🔄 Upload to Opus",
+                                        text: "Upload the final testimony video to Opus Clip for automated short clip extraction"
+                                    },
+                                    {
+                                        title: "✂️ Select Best Clips",
+                                        text: "Review Opus results and select the 3 strongest short clips that capture key transformation moments"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "generate-shorts-content",
+                            title: "Generate Shorts Content",
+                            content: {
+                                title: "Create Content for Short Clips",
+                                subtitle: "Generate titles and descriptions for testimony shorts",
+                                instructions: [
+                                    {
+                                        title: "🤖 Generate Shorts Copy",
+                                        text: "Use this GPT prompt for each of the 3 selected testimony clips",
+                                        prompt: {
+                                            label: "Testimony Shorts Content Generator",
+                                            text: `Create YouTube Shorts content for this testimony clip:
+
+[PASTE CLIP TRANSCRIPT HERE]
+
+Generate:
+1. YOUTUBE TITLE (MAX 60 characters, emotionally compelling, testimony-focused)
+2. DESCRIPTION (2-3 sentences about the specific transformation moment in this clip)
+3. HASHTAGS (7-10 relevant tags including #testimony, #transformation, #faith, #hope)
+4. THUMBNAIL HOOK TEXT (3-5 words for Edgar to use in thumbnail design)
+
+Guidelines:
+- Focus on the specific breakthrough or revelation in this clip
+- Make titles curiosity-driven but honest
+- Highlight the emotional turning point
+- Use language that resonates with people seeking hope
+- Avoid church jargon, focus on human transformation`
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            id: "coordinate-edgar-thumbnails",
+                            title: "Coordinate with Edgar",
+                            content: {
+                                title: "Thumbnail Design Coordination",
+                                subtitle: "Provide Edgar with hook text and approve designs",
+                                instructions: [
+                                    {
+                                        title: "📝 Provide Hook Text to Edgar",
+                                        text: "Share all generated thumbnail hook text (long-form + 3 shorts) with Edgar for testimony thumbnail design"
+                                    },
+                                    {
+                                        title: "🎨 Review and Approve Thumbnails",
+                                        text: "Review Edgar's testimony thumbnail designs and provide feedback or approval for the long-form and 3 short videos"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        };
+
+        let currentWeek = localStorage.getItem('currentWeek') || 'sermon';
+        let currentEmployee = localStorage.getItem('currentEmployee') || 'andrian';
+        let completedSteps = JSON.parse(localStorage.getItem('completedSteps') || '{}');
+        let activeStep = localStorage.getItem('activeStep') || null;
+        let isAdminMode = false;
+        let currentEditTarget = null;
+        let currentEditPath = null;
+        
+        // Load custom workflows from localStorage
+        let customWorkflows = JSON.parse(localStorage.getItem('customWorkflows') || 'null');
+        if (customWorkflows) {
+            Object.assign(workflows, customWorkflows);
+        }
+
+        function saveState() {
+            localStorage.setItem('currentWeek', currentWeek);
+            localStorage.setItem('currentEmployee', currentEmployee);
+            localStorage.setItem('completedSteps', JSON.stringify(completedSteps));
+            localStorage.setItem('activeStep', activeStep);
+        }
+
+        function updateWeekInfo() {
+            const weekInfo = document.getElementById('week-info');
+            const workflow = workflows[currentEmployee]?.[currentWeek];
+            if (workflow) {
+                weekInfo.innerHTML = `
+                    <h3>${workflow.title}</h3>
+                    <p>${workflow.description}</p>
+                `;
+            } else {
+                weekInfo.innerHTML = `
+                    <h3>No Workflow Defined</h3>
+                    <p>This employee's responsibilities need to be configured</p>
+                `;
+            }
+        }
+
+        function renderSteps() {
+            const container = document.getElementById('steps-container');
+            const workflow = workflows[currentEmployee]?.[currentWeek];
+            
+            if (!workflow || !workflow.steps) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No steps defined for this employee</div>';
+                return;
+            }
+            
+            console.log(`Rendering ${workflow.steps.length} steps for ${currentEmployee} ${currentWeek}`); // Debug log
+            
+            container.innerHTML = workflow.steps.map((step, index) => {
+                const completionKey = `${currentEmployee}.${currentWeek}`;
+                const isCompleted = completedSteps[completionKey]?.[step.id];
+                const isActive = activeStep === step.id;
+                
+                return `
+                    <div class="step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" 
+                         data-step="${step.id}">
+                        <div class="step-number">${index + 1}</div>
+                        <div class="step-title">${step.title}</div>
+                        <input type="checkbox" class="step-checkbox" ${isCompleted ? 'checked' : ''} 
+                               onclick="toggleStepCompletion(event, '${step.id}')">
+                    </div>
+                `;
+            }).join('');
+
+            // Add click handlers
+            container.querySelectorAll('.step').forEach(stepEl => {
+                stepEl.addEventListener('click', (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        activeStep = stepEl.dataset.step;
+                        saveState();
+                        renderSteps();
+                        renderStepContent();
+                    }
+                });
+            });
+        }
+
+        function renderStepContent() {
+            if (!activeStep) {
+                document.getElementById('step-title').textContent = 'Select a step to begin';
+                document.getElementById('step-subtitle').textContent = 'Choose from the workflow steps on the left';
+                document.getElementById('step-content').innerHTML = '';
+                return;
+            }
+
+            const workflow = workflows[currentEmployee]?.[currentWeek];
+            if (!workflow || !workflow.steps) {
+                document.getElementById('step-title').textContent = 'No content available';
+                document.getElementById('step-subtitle').textContent = 'This workflow needs to be configured';
+                document.getElementById('step-content').innerHTML = '';
+                return;
+            }
+
+            const step = workflow.steps.find(s => s.id === activeStep);
+            if (!step || !step.content) {
+                document.getElementById('step-title').textContent = 'Step not found';
+                document.getElementById('step-subtitle').textContent = 'This step needs to be configured';
+                document.getElementById('step-content').innerHTML = '';
+                return;
+            }
+
+            const content = step.content;
+            document.getElementById('step-title').textContent = content.title;
+            document.getElementById('step-subtitle').textContent = content.subtitle;
+
+            const stepContentHtml = `
+                ${content.instructions.map((instruction, instrIndex) => `
+                    <div class="instruction-card">
+                        <h3 class="instruction-title ${isAdminMode ? 'editable' : ''}" 
+                            ${isAdminMode ? `onclick="editText('${activeStep}.instructions.${instrIndex}.title', this)"` : ''}>
+                            ${instruction.title}
+                        </h3>
+                        <p class="instruction-text ${isAdminMode ? 'editable' : ''}" 
+                           ${isAdminMode ? `onclick="editText('${activeStep}.instructions.${instrIndex}.text', this)"` : ''}>
+                            ${instruction.text}
+                        </p>
+                        ${instruction.prompt ? `
+                            <div class="prompt-card">
+                                <div class="prompt-header">
+                                    <span class="prompt-label ${isAdminMode ? 'editable' : ''}" 
+                                          ${isAdminMode ? `onclick="editText('${activeStep}.instructions.${instrIndex}.prompt.label', this)"` : ''}>
+                                        ${instruction.prompt.label}
+                                    </span>
+                                    <button class="copy-btn" onclick="copyToClipboard('${instruction.prompt.text.replace(/'/g, "\\'")}')">Copy</button>
+                                </div>
+                                <div class="prompt-text ${isAdminMode ? 'editable' : ''}" 
+                                     ${isAdminMode ? `onclick="editText('${activeStep}.instructions.${instrIndex}.prompt.text', this)"` : ''}>
+                                    ${instruction.prompt.text}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${instruction.hasOwnProperty('canvaLink') ? `
+                            <div class="canva-link-container">
+                                <label class="canva-link-label">Canva Design Link:</label>
+                                <input type="url" 
+                                       class="canva-link-input" 
+                                       placeholder="Paste your Canva design link here..."
+                                       value="${instruction.canvaLink || ''}"
+                                       onchange="updateCanvaLink('${activeStep}', ${instrIndex}, this.value)"
+                                       ${!isAdminMode ? 'readonly' : ''}>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('step-content').innerHTML = stepContentHtml;
+        }
+
+        function switchEmployee() {
+            currentEmployee = document.getElementById('employee-select').value;
+            activeStep = null;
+            
+            // Handle week selector visibility
+            const weekSelector = document.getElementById('week-selector');
+            if (currentEmployee === 'andrian') {
+                weekSelector.classList.remove('hidden');
+            } else {
+                weekSelector.classList.add('hidden');
+                if (currentEmployee === 'edgar' || currentEmployee === 'chichi') {
+                    currentWeek = 'weekly';
+                } else if (currentEmployee === 'titus') {
+                    currentWeek = 'monthly';
+                } else {
+                    currentWeek = 'weekly';
+                }
+            }
+            
+            saveState();
+            updateWeekInfo();
+            renderSteps();
+            renderStepContent();
+        }
+
+        function toggleStepCompletion(event, stepId) {
+            event.stopPropagation();
+            
+            const completionKey = `${currentEmployee}.${currentWeek}`;
+            if (!completedSteps[completionKey]) completedSteps[completionKey] = {};
+            
+            if (completedSteps[completionKey][stepId]) {
+                delete completedSteps[completionKey][stepId];
+            } else {
+                completedSteps[completionKey][stepId] = {
+                    completed: true,
+                    completedAt: new Date().toISOString()
+                };
+            }
+            
+            saveState();
+            renderSteps();
+        }
+
+        function toggleAdminMode() {
+            isAdminMode = document.getElementById('admin-mode').checked;
+            document.body.classList.toggle('admin-mode', isAdminMode);
+            
+            // Re-render content to add/remove editable classes
+            if (activeStep) {
+                renderStepContent();
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback could be added here
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const weekOptions = document.querySelectorAll('.week-option');
+            
+            weekOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    weekOptions.forEach(opt => opt.classList.remove('active'));
+                    option.classList.add('active');
+                    currentWeek = option.dataset.week;
+                    activeStep = null;
+                    saveState();
+                    updateWeekInfo();
+                    renderSteps();
+                    renderStepContent();
+                });
+            });
+
+            // Set initial state
+            if (currentWeek === 'sermon' || currentWeek === 'podcast') {
+                document.querySelector(`[data-week="${currentWeek}"]`)?.classList.add('active');
+            }
+            document.getElementById('employee-select').value = currentEmployee;
+            
+            // Handle initial week selector visibility
+            const weekSelector = document.getElementById('week-selector');
+            if (currentEmployee !== 'andrian') {
+                weekSelector.classList.add('hidden');
+                if (currentEmployee === 'titus') {
+                    currentWeek = 'monthly';
+                } else {
+                    currentWeek = 'weekly';
+                }
+            }
+            
+            updateWeekInfo();
+            renderSteps();
+            renderStepContent();
+        });
+    </script>
+</body>
+</html>
